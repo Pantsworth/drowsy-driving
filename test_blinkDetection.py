@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import time
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 
 cap = cv2.VideoCapture(0)
@@ -12,18 +12,28 @@ handCascade = cv2.CascadeClassifier("haarcascade_hand.xml")
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 mouth_cascade = cv2.CascadeClassifier("haarcascade_mcs_mouth.xml")
 
-blinkBool = False
-blinkCount = 0
-flag = False
+# blinking vars
+blink_flag = False
+blink_bool = False
+blink_count = 0
+blink_start = 0
+blink_frequency = 0.0
+
+
+# yawning vars
+yawn_flag = False
+yawn_flag2 = False
+yawn_bool = False
+yawn_count = 0
+yawn_frequency = 0.0
+yawn_start = 0
+
 
 overallTime = time.clock()
-start = 0
-
-blinkFrequency = 0.0
 
 while (True):
     ret, img = cap.read()
-    blinkFrequency = 60 * blinkCount / ((time.clock() - overallTime))
+    blink_frequency = 60 * blink_count / ((time.clock() - overallTime))
     # while(True):
     # Capture frame-by-frame
     # ret, img = cap.read()
@@ -34,7 +44,7 @@ while (True):
 
     faces = face_cascade.detectMultiScale(gray, 1.3, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, (20, 20))
 
-    flag = False
+    blink_flag = False
 
     for (x, y, w, h) in faces:
         cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
@@ -43,7 +53,7 @@ while (True):
         eyes = eye_cascade.detectMultiScale(roi_gray)
         eyes_detected = 0
         for (ex, ey, ew, eh) in eyes:
-            eyes_detected+=1
+            eyes_detected += 1
             eye_img = roi_gray[ey:ey+eh, ex:ex+ew]
             eye_img_color = roi_color[ey:ey+eh, ex:ex+ew]
             cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
@@ -65,7 +75,7 @@ while (True):
             if (eyes_detected==2):
                 break
         if len(eyes) == 0:
-            flag = True
+            blink_flag = True
             # limit to 1
 
         roi_gray_mouth = gray[(y+h/2):y+h, x:x + w]
@@ -74,7 +84,8 @@ while (True):
         mouth = mouth_cascade.detectMultiScale(roi_gray_mouth,1.3, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, (20, 20))
 
         for (mx, my, mw, mh) in mouth:
-            cv2.rectangle(roi_color_mouth, (mx, my), (mx + 2*mw, my + 2*mh), (255, 0, 255), 2)
+            mouth_detected = True
+            cv2.rectangle(roi_color_mouth, (mx, my), (mx + mw, my + mh), (255, 0, 255), 2)
             roi_gray_mouth = gray[my:my+mh*2, mx:mx + 2*mw]
             circles = cv2.HoughCircles(roi_gray_mouth,cv2.cv.CV_HOUGH_GRADIENT,1,120,
                     param1=50,param2=20,minRadius=10,maxRadius=300)
@@ -89,24 +100,51 @@ while (True):
                     # corresponding to the center of the circle
                     cv2.circle(roi_color_mouth, (x, y), r, (0, 0, 255), 4)
                     # cv2.rectangle(img, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+            if mouth_detected:
+                break
 
-            break
+        if len(mouth) == 0 and yawn_flag2:
+            yawn_flag = True
 
-    if (time.clock() - start) > 0.4:
-        if (flag == False):
-            blinkBool = False
-        # now, if flag is true, then figure out blinking
-    if (flag == True):
-        if (blinkBool == False):
-            # start timer
-            start = time.clock()
-            blinkBool = True
-            blinkCount += 1
-            print "Detect blink, total:", blinkCount
-            print "Blink Frequency: ", blinkFrequency, " in ", (time.clock() - overallTime), " sec"
+        if len(mouth) == 0:
+            yawn_flag2 = True
+
         else:
-            print "detect blink but disabled"
+            yawn_flag = False
+            yawn_flag2 = False
+
+
+    if (time.clock() - blink_start) > 0.4:
+        if (blink_flag == False):
+            blink_bool = False
+
+    if (time.clock() - yawn_start) > 3.0:
+        if yawn_flag == False:
+            yawn_bool = False
+
+        # now, if flag is true, then figure out blinking
+    if (blink_flag == True):
+        if (blink_bool == False):
+            # start timer
+            blink_start = time.clock()
+            blink_bool = True
+            blink_count += 1
+            print "Detect blink, total:", blink_count
+            print "Blink Frequency: ", blink_frequency, " in ", (time.clock() - overallTime), " sec"
+        # else:
+        #     print "detect blink but disabled"
         # get the time spent
+
+    if yawn_flag:
+        # print "Yawn Flag:", yawn_flag, "Yawn Bool: ", yawn_bool
+        if not yawn_bool:
+            yawn_start = time.clock()
+            yawn_bool = True
+            yawn_count += 1
+            print "Detect yawn, total:", yawn_count
+            print "Yawn Frequency: ", yawn_frequency, " in ", (time.clock() - overallTime), " sec"
+
+            # print "detected yawn but disabled"
 
         # if less than 20 ms, do nothing
 
@@ -115,7 +153,7 @@ while (True):
     # print "Found ",len(faces)," faces!"
     # Display the resulting frame
     cv2.imshow('Video', img)
-    if (blinkCount == 50):
+    if (blink_count == 50):
         break
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break  # time.sleep(1)
