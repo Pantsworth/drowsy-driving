@@ -20,20 +20,20 @@
         android:textSize="20dp"
         android:fontFamily="Arial"
         android:text="@string/main2_blinkRate_text_view"
-        android:id="@+id/main2_blinkRate_text"
+        android:id="@+id/main2_blinkRate_title"
         android:layout_weight="0.32"
         android:layout_alignParentLeft="true"
         android:focusableInTouchMode="false"
         android:layout_marginTop="16dp"
         android:fontFeatureSettings="@android:string/selectTextMode" />
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText_blink"
+        android:id="@+id/main2_blinkRate"
         android:layout_weight="0.32"
         android:layout_alignParentLeft="true"
-        android:layout_alignBottom="@id/main2_blinkRate_text"
+        android:layout_alignBottom="@id/main2_blinkRate_title"
         android:outlineProvider="background"
         android:backgroundTint="#86c3e7"
         android:autoText="false" />
@@ -45,17 +45,17 @@
         android:text="@string/main2_yawnRate_text_view"
         android:textSize="20dp"
         android:fontFamily="Arial"
-        android:id="@+id/main2_yawnRate_text"
+        android:id="@+id/main2_yawnRate_title"
         android:layout_weight="0.32"
         android:layout_marginTop="70dp"
-        android:layout_below="@+id/main2_blinkRate_text" />
+        android:layout_below="@+id/main2_blinkRate" />
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText_yawn"
+        android:id="@+id/main2_yawnRate"
         android:layout_weight="0.32"
-        android:layout_alignBottom="@+id/main2_yawnRate_text"
+        android:layout_alignBottom="@+id/main2_yawnRate_title"
         android:layout_alignParentEnd="true" />
 
 

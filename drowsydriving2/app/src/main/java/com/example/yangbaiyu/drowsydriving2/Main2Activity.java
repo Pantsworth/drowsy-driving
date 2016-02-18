@@ -25,18 +25,50 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
+import android.app.Activity;
+
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
+import android.hardware.SensorEventListener;
+import android.net.Uri;
+import android.os.Bundle;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.Text;
+
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.EditText;
+import android.widget.TextView;
+import java.lang.InterruptedException;
+
+import com.example.yangbaiyu.drowsydriving2.JsonParser;
+//import com.google.android.gms.appindexing.Action;
+//import com.google.android.gms.appindexing.AppIndex;
+//import com.google.android.gms.common.api.GoogleApiClient;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main2Activity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,SensorEventListener {
    // ListView listView;
    // ArrayAdapter<String> adapter;
    // String[] pi_data = {
     //        "Blink Rate:     ",  "Yawn Rate:     "
   //  };
+
+    TextView yawnRate,blinkRate;
+    String myBlinkRate,myYawnRate;
+    private Sensor senAccelerometer;
+    private SensorManager senSensorManager;
+
+    private long lastUpdate = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,16 +86,125 @@ public class Main2Activity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        senAccelerometer = senSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        senSensorManager.registerListener(this, senAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+
         //listView = (ListView) findViewById(R.id.listView);
         //adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,pi_data);
         // listView.setAdapter(adapter);
 
-
+        findViews();
+        new AsyncTaskParseJson().execute();
 
 
     }
 
+    private void findViews() {
+        blinkRate = (TextView) findViewById(R.id.main2_blinkRate);
+        yawnRate = (TextView) findViewById(R.id.main2_yawnRate);
+    }
+    public void writeSomething() {
+        //TextView text = (TextView)findViewById(R.id.information);
+        blinkRate.setText(myBlinkRate);
+        yawnRate.setText(myYawnRate);
+    }
+
+
     @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        Sensor mySensor = sensorEvent.sensor;
+
+        if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER){
+
+            long curTime = System.currentTimeMillis();
+
+            if ((curTime - lastUpdate) > 2000){
+                lastUpdate = curTime;
+
+                new AsyncTaskParseJson().execute();
+                writeSomething();
+            }
+        }
+
+    }
+    protected void onResume() {
+        super.onResume();
+        senSensorManager.registerListener(this, senAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    protected void onPause() {
+        super.onPause();
+        senSensorManager.unregisterListener(this);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+
+    public class AsyncTaskParseJson extends AsyncTask<String, String, String> {
+
+        final String TAG = "AsyncTaskParseJson.java";
+
+        // set your json string url here
+        String yourJsonStringUrl = "http://mhealthhelloworld-bpeynetti.c9users.io/getData.php";
+
+        // contacts JSONArray
+        JSONArray dataJsonArr = null;
+
+        @Override
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected String doInBackground(String... arg0) {
+//            AsyncTaskDone = false;
+            try {
+
+                // instantiate our json parser
+                JsonParser jParser = new JsonParser();
+
+                // get json string from url
+                JSONObject json = jParser.getJSONFromUrl(yourJsonStringUrl);
+
+                // get the array of users
+                dataJsonArr = json.getJSONArray("Data");
+                String yawnRate = "", blinkRate = "";
+                // loop through all users
+                for (int i = 0; i < 1; i++) {
+
+                    JSONObject c = dataJsonArr.getJSONObject(i);
+
+                    // Storing each json item in variable
+                    yawnRate = c.getString("yawnRate");
+                    blinkRate = c.getString("blinkRate");
+
+                    // show the values in our logcat
+                    Log.e(TAG, "yawnRate: " + yawnRate
+                            + ", blinkRate: " + blinkRate);
+
+                }
+                //myText = ("Yawn:" + yawnRate + " , blink: " + blinkRate);
+                myBlinkRate = ("" + blinkRate);
+                myYawnRate = ("" + yawnRate);
+                //writeSomething();
+//                txtEdit.setText("Yawn:" + yawnRate + " , blink: "+blinkRate);
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+//            AsyncTaskDone = true;
+            return null;
+        }
+    }
+
+
+
+
+        @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
