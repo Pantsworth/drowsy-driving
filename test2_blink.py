@@ -45,6 +45,7 @@ def test2_blink():
     yawn_count = 0
     yawn_frequency = 0.0
     yawn_start = 0
+    normal_mouth_size = 0
 
 
     overallTime = time.clock()
@@ -123,13 +124,25 @@ def test2_blink():
             roi_color_mouth = img[(y+h/2):y+h, x:x + w]
             cv2.imshow("mouth", roi_gray_mouth)
 
-            mouth = mouth_cascade.detectMultiScale(roi_gray_mouth,1.3, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, (20, 20))
+            mouth = mouth_cascade.detectMultiScale(roi_gray_mouth,1.3, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, minSize=(40, 40))
             # print "Length:",len(mouth)
 
             for (mx, my, mw, mh) in mouth:
                 # print "finding mouth"
                 mouth_detected = True
                 cv2.rectangle(roi_color_mouth, (mx, my), (mx + mw, my + mh), (255, 0, 255), 2)
+
+                # print("Normal Mouth Size is:", normal_mouth_size)
+                if normal_mouth_size == 0:
+                        normal_mouth_size = mh
+
+                if mh > 1.5*(normal_mouth_size):
+                    print("Normal Mouth Size is:", normal_mouth_size, "probably a yawn?", mh)
+
+                else:
+                    normal_mouth_size = ((mh+normal_mouth_size)/2)
+
+
                 roi_gray_mouth = gray[my:my+mh*2, mx:mx + 2*mw]
 
                 if mouth_detected:
@@ -186,7 +199,7 @@ def test2_blink():
                 yawn_bool = True
                 yawn_count += 1
                 print "Detect yawn, total:", yawn_count
-                print "Yawn Frequency: ", yawn_frequency, " in ", (time.clock() - overallTime), " sec"
+                print "Yawn Frequency: ", yawn_count, " in ", (time.clock() - overallTime), " sec"
 
 
             # if less than 20 ms, do nothing
@@ -217,6 +230,8 @@ def test2_blink():
     fps.stop()
     print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+    print "Yawn Frequency: ", yawn_count, " in ", (time.clock() - overallTime), " sec"
+
 
     file.write(txt)
     file.close()
