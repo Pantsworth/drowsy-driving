@@ -1,0 +1,42 @@
+Features
+
+	Avg of the last x seconds (x=60 default)
+
+	- blink rate per minute
+	- length of blink (# of frames (time) when eye is closed) 
+	- yawning rate per minute
+	- length of yawn (time or frames)
+	- 
+
+	NODDING
+		Look at location of pupil
+		Identify a nod:
+			//Figure out amplitude and frequency (y axis) of the eye movement 
+			Max, Min position (y) in the last 10 seconds
+
+	====
+
+	create functions
+		- eyes_closed() -> returns boolean 1/0
+		- find_mouth() -> returns boolean 1/0
+
+		some function figures out blink rate and yawn rate by calling the two functions every frame and keeping track of time
+
+		MAX/MIN -> for nodding. Use a linked list of some sort
+			data structure -> add a max/min element to it
+
+		- nose detection -> to detect center of face
+			always look into center of face rectangle 
+
+	====
+
+	performance improvement
+
+		- cut out the face
+		- use b/w instead of color
+		- eye detection: restrict to top of the fae (only identifies one)
+		- mouth detection: restrict to bottom half of face
+		- look at using different resolutions and speed vs accuracy?
+		- parallelize to use 4 cores
+
+		- option: capture 4 frames, parallelize and bring it back
