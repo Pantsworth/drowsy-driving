@@ -9,11 +9,11 @@ import sys
 file = open('not_sleepy1.csv','w')
 file.write("Blink_Ratio,Blink_Length\n")
 # from matplotlib import pyplot as plt
+
+
 def getRate(timeArray):
-
-
     now = time.clock()
-    only_past_minute = [x for x in timeArray if x>(now-60)]
+    only_past_minute = [x for x in timeArray if x > (now-60)]
     print only_past_minute
     
     return len(only_past_minute)
@@ -23,7 +23,6 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.cv.CV_CAP_PROP_FPS, 20)
 
 eyes = cv2.CascadeClassifier("haarcascade_eye.xml")
-handCascade = cv2.CascadeClassifier("haarcascade_hand.xml")
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 mouth_cascade = cv2.CascadeClassifier("haarcascade_mcs_mouth.xml")
 
@@ -57,7 +56,7 @@ lastBlink = time.clock() #set to start at 0
 yawnTimes = []
 txt = ""
 
-while (True):
+while True:
     ret, img = cap.read()
     img = cv2.resize(img, (0, 0), fx=0.5, fy=0.5)
     # Our operations on the frame come here
@@ -68,48 +67,51 @@ while (True):
     blink_flag = False
 
     frame = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
-        # print frame.shape
+
+    # print frame.shape
 
     faces = face_cascade.detectMultiScale(gray, 1.3, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, minSize=(50, 50))
     for (x, y, w, h) in faces:
 
-        eye_frame = gray[(y+h/5):(y+h/2), x:x+w]
+        eye_frame = gray[(y+h/5):(y+h/2), x:x+w]           # take a zorro mask subset
 
-        detected = eyes.detectMultiScale(eye_frame, minNeighbors=4,scaleFactor=1.05, minSize=(7,7))
+        detected = eyes.detectMultiScale(eye_frame, minNeighbors=4, scaleFactor=1.05, minSize=(7, 7))
         if len(detected) == 0:
-            if eyes_flag2>0:
+            if eyes_flag2 > 0:
                 blink_flag = True
                 eyes_flag2 = 0
             else:
-                eyes_flag2+=1
+                eyes_flag2 += 1
         else:
             eyes_flag2 = 0
-            if (blink_bool==True and recorded_time_blink==False):
+            if blink_bool and recorded_time_blink == False:
                 # opened eyes, so record the time they were closed
                 timeSpent = (time.clock() - blink_start)
                 print "Blink was:",timeSpent," seconds long"
-                if (len(blinkLengthArr)<10):
+
+                if len(blinkLengthArr) < 10:
                     blinkLengthArr.append(timeSpent)
+
                 else:
                     blinkLengthArr = blinkLengthArr[1:]
                     blinkLengthArr.append(timeSpent)
                 recorded_time_blink = True
 
-                #display average blinking time
+                # display average blinking time
                 last_minute_blinking = blinkLengthArr
                 print last_minute_blinking
                 blink_length_avg = -1
-                if not(last_minute_blinking==[]):
+
+                if not(last_minute_blinking == []):
                     blink_length_avg = sum(last_minute_blinking)/(float(len(last_minute_blinking)))
-                    print "Average blinking time is ",blink_length_avg
+                    print "Average blinking time is ", blink_length_avg
             blink_flag = False
 
         # cv2.imshow("eyes",eye_frame)
 
-
         roi_gray_mouth = gray[(y+h/2):y+h, x:x + w]
         roi_color_mouth = img[(y+h/2):y+h, x:x + w]
-        cv2.imshow("mouth",roi_gray_mouth)
+        cv2.imshow("mouth", roi_gray_mouth)
 
         mouth = mouth_cascade.detectMultiScale(roi_gray_mouth,1.3, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, (20, 20))
         # print "Length:",len(mouth)
@@ -124,11 +126,11 @@ while (True):
                 break
 
         if len(mouth) == 0:
-            if yawn_flag2>5:
+            if yawn_flag2 > 5:
                 yawn_flag = True
                 yawn_flag2 = 0
             else:
-                yawn_flag2+=1
+                yawn_flag2 += 1
         else:
             yawn_flag = False
             yawn_flag2 = 0
@@ -167,7 +169,7 @@ while (True):
         #     print "detect blink but disabled"
         # get the time spent
 
-    if yawn_flag==True:
+    if yawn_flag:
         # print "Yawn Flag:", yawn_flag, "Yawn Bool: ", yawn_bool
         if not yawn_bool:
             yawn_start = time.clock()
