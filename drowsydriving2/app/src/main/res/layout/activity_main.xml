@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.yangbaiyu.drowsydriving2.MainActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/blue"
+        android:scaleType="fitXY"
+        android:id="@+id/imageView"
+        android:backgroundTint="#e7e7e7"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true" />
+
+    <TextView
+        android:id="@+id/drowsy_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:typeface="monospace"
+        android:textSize="50sp"
+        android:text="@string/app_title_drowsy"
+        android:layout_marginTop="53dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignLeft="@+id/login_btn"
+        android:layout_alignStart="@+id/login_btn" />
+
+
+    <TextView
+        android:id="@+id/driving_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#ffffff"
+        android:typeface="monospace"
+        android:textSize="50sp"
+        android:text="@string/app_title_driving"
+        android:clickable="true"
+        android:layout_below="@+id/drowsy_text_view"
+        android:layout_alignRight="@+id/signup_btn"
+        android:layout_alignEnd="@+id/signup_btn" />
+
+    <Button
+        android:layout_width="140dp"
+        android:layout_height="55dp"
+        android:text="@string/btn_sign_up"
+        android:id="@+id/signup_btn"
+        android:background="@drawable/blue_btn"
+        android:backgroundTint="#dadbdd"
+        android:textSize="20sp"
+        android:layout_alignTop="@+id/login_btn"
+        android:layout_toRightOf="@+id/skip_text_view"
+        android:layout_toEndOf="@+id/skip_text_view"
+        android:onClick="onClick_sign_up"/>
+
+    <Button
+        android:layout_width="140dp"
+        android:layout_height="55dp"
+        android:text="@string/btn_log_in"
+        android:id="@+id/login_btn"
+        android:background="@drawable/blue_btn"
+        android:textColor="#ffffff"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="85dp"
+        android:layout_marginLeft="16dp"
+        android:textSize="20sp"
+        android:onClick="onClick_login"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/main_skip"
+        android:id="@+id/skip_text_view"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="35dp"
+        android:textColor="#ffffff"
+        android:textSize="22sp"
+        android:clickable="true"
+        android:onClick="onClick_nav"/>
+
+
+
+
+
+
+
+
+
+
+</RelativeLayout>
