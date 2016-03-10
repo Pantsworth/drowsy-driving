@@ -1,10 +1,10 @@
 from __future__ import print_function
+
+
 import datetime
 from threading import Thread
 import cv2
 # import the necessary packages
-# from imutils.video import WebcamVideoStream
-# from imutils.video import FPS
 import argparse
 import imutils
 import cv2
@@ -12,10 +12,12 @@ import numpy as np
 import time
 
 
-# picamera imports
-# from picamera.array import PiRGBArray
-# from picamera import PiCamera
-# import time
+use_pi = False
+
+if (use_pi):
+    # picamera imports
+    from picamera.array import PiRGBArray
+    from picamera import PiCamera
 
 
 def main():
@@ -173,6 +175,52 @@ class WebcamVideoStream:
         self.stopped = True
 
 
+class PiVideoStream:
+    def __init__(self, resolution=(640, 480), framerate=24):
+        # initialize the camera and stream
+        self.camera = PiCamera()
+        self.camera.resolution = resolution
+        self.camera.framerate = framerate
+        self.rawCapture = PiRGBArray(self.camera, size=resolution)
+        self.stream = self.camera.capture_continuous(self.rawCapture,
+                                                     format="bgr", use_video_port=True)
+
+        # initialize the frame and the variable used to indicate
+        # if the thread should be stopped
+        self.frame = None
+        self.stopped = False
+
+    def start(self):
+        # start the thread to read frames from the video stream
+        Thread(target=self.update, args=()).start()
+        return self
+
+    def update(self):
+        # keep looping infinitely until the thread is stopped
+        for f in self.stream:
+            # grab the frame from the stream and clear the stream in
+            # preparation for the next frame
+            self.frame = f.array
+            self.rawCapture.truncate(0)
+
+            # if the thread indicator variable is set, stop the thread
+            # and resource camera resources
+            if self.stopped:
+                self.stream.close()
+                self.rawCapture.close()
+                self.camera.close()
+                return
+
+    def read(self):
+            # return the frame most recently read
+            return self.frame
+
+    def stop(self):
+        # indicate that the thread should be stopped
+        self.stopped = True
+
+
+
 def detectPupil(frame, faces):
         # gotta define largeBlob to keep things good
         largeBlob = []
@@ -284,16 +332,18 @@ def detectPupil(frame, faces):
 
 
 def blink2_thread():
-    file = open('not_sleepy1.csv','w')
-    file.write("Blink_Ratio,Blink_Length\n")
 
+    write_to_file = False
+
+    if write_to_file:
+        file = open('not_sleepy1.csv','w')
+        file.write("Blink_Ratio,Blink_Length\n")
 
     def getRate(timeArray):
         now = time.clock()
         only_past_minute = [x for x in timeArray if x > (now-60)]
         print(only_past_minute)
         return len(only_past_minute)
-
 
     eyes = cv2.CascadeClassifier("haarcascade_eye.xml")
     face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
@@ -334,14 +384,18 @@ def blink2_thread():
     num_frames = 300
     display = False
     unthreaded = False
-    pivideo = False
 
-    print("[INFO] sampling THREADED frames from webcam...")
-    vs = WebcamVideoStream(src=0).start()
+    if use_pi:
+        vs = PiVideoStream().start()
+        print("Using pi")
+
+    else:
+        print("[INFO] sampling THREADED frames from webcam...")
+        vs = WebcamVideoStream(src=0).start()
+
     fps = FPS().start()
 
-
-    while (fps._numFrames < num_frames):
+    while fps._numFrames < num_frames:
         frame_read = vs.read()
 
         img = cv2.resize(frame_read, (0, 0), fx=0.5, fy=0.5)
@@ -475,7 +529,8 @@ def blink2_thread():
             # url = "https://mhealthhelloworld-bpeynetti.c9users.io/insert.php"
             # r = requests.post(url,data=payload)
             txt = str(blinkRatio)+','+str(blink_length_avg)+'\n'
-            file.write(txt)
+            if write_to_file:
+                file.write(txt)
             sent = True
 
         if (timeElapsed%30==1):
@@ -488,11 +543,10 @@ def blink2_thread():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break  # time.sleep(1)
 
-
-    print("WRITING DATA")
-
-    file.write(txt)
-    file.close()
+    if write_to_file:
+        print("WRITING DATA")
+        file.write(txt)
+        file.close()
 
     # stop the timer and display FPS information
     fps.stop()
@@ -500,6 +554,28 @@ def blink2_thread():
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
     vs.stop()
     cv2.destroyAllWindows()
+
+
+
+
+
+# from picamera.array import PiRGBArray
+# from picamera import PiCamera
+# import time
+# import cv2
+#
+# camera = PiCamera()
+# time.sleep(0.2)
+#
+# camera.resolution=(640,800)
+# camera.framerate = 32
+# rawCapture = PiRGBArray(camera, size=(640,800))
+#
+# rawCapture.truncate(0)
+#
+# for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+#     #grab the frame
+#     image = frame.array
 
 
 if __name__ == '__main__':
